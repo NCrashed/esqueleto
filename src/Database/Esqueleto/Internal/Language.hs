@@ -52,7 +52,6 @@ import Database.Esqueleto.Internal.PersistentImport
 import Text.Blaze.Html (Html)
 
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 
@@ -299,7 +298,7 @@ class (Functor query, Applicative query, Monad query) =>
   sub_selectDistinct :: PersistField a => query (expr (Value a)) -> expr (Value a)
 
   -- | Project a field of an entity.
-  (^.) :: (PersistEntity val, PersistField typ) =>
+  (^.) :: (PersistEntity val) =>
           expr (Entity val) -> EntityField val typ -> expr (Value typ)
 
   -- | Project a field of an entity that may be null.

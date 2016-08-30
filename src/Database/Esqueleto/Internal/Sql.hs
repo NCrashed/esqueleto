@@ -417,11 +417,12 @@ instance Esqueleto SqlQuery SqlExpr SqlBackend where
     where
       toDistinctOn :: SqlExpr OrderBy -> SqlExpr DistinctOn
       toDistinctOn (EOrderBy _ f) = EDistinctOn f
+      toDistinctOn EOrderRandom = error "distinctOnOrderBy: EOrderRandom"
 
   sub_select         = sub SELECT
   sub_selectDistinct = sub_select . distinct
 
-  (^.) :: forall val typ. (PersistEntity val, PersistField typ)
+  (^.) :: forall val typ. (PersistEntity val)
        => SqlExpr (Entity val) -> EntityField val typ -> SqlExpr (Value typ)
   EEntity ident ^. field
     | isComposite = ECompositeKey $ \info ->  dot info <$> compositeFields pdef
@@ -530,12 +531,12 @@ instance Esqueleto SqlQuery SqlExpr SqlBackend where
 instance ToSomeValues SqlExpr (SqlExpr (Value a)) where
   toSomeValues a = [SomeValue a]
 
-fieldName :: (PersistEntity val, PersistField typ)
+fieldName :: PersistEntity val
           => IdentInfo -> EntityField val typ -> TLB.Builder
 fieldName info = fromDBName info . fieldDB . persistFieldDef
 
 -- FIXME: Composite/non-id pKS not supported on set
-setAux :: (PersistEntity val, PersistField typ)
+setAux :: PersistEntity val
        => EntityField val typ
        -> (SqlExpr (Entity val) -> SqlExpr (Value typ))
        -> SqlExpr (Update val)
@@ -647,7 +648,7 @@ unsafeSqlBinOpComposite op sep a b = ERaw Parens $ compose (listify a) (listify 
 
     deconstruct :: (TLB.Builder, [PersistValue]) -> ([TLB.Builder], [PersistValue])
     deconstruct ("?", [PersistList vals]) = (replicate (length vals) "?", vals)
-    deconstruct (b, []) = (TLB.fromLazyText <$> TL.splitOn "," (TLB.toLazyText b), [])
+    deconstruct (bs, []) = (TLB.fromLazyText <$> TL.splitOn "," (TLB.toLazyText bs), [])
     deconstruct x = err $ "cannot deconstruct " ++ show x ++ "."
 
     compose f1 f2 info
@@ -1266,7 +1267,7 @@ instance ( SqlSelect a ra
       fromTuple = const (Proxy, Proxy)
   sqlSelectProcessRow =
     let x = getType processRow
-        getType :: SqlSelect a r => (z -> Either y (r,x)) -> Proxy a
+        getType :: (z -> Either y (r,x)) -> Proxy a
         getType = const Proxy
 
         colCountFst = sqlSelectColCount x

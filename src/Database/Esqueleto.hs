@@ -109,8 +109,8 @@ import Control.Monad.Trans.Reader (ReaderT)
 import Data.Int (Int64)
 import Database.Esqueleto.Internal.Language
 import Database.Esqueleto.Internal.Sql
-import Database.Esqueleto.Internal.PersistentImport
-import qualified Database.Persist
+import Database.Esqueleto.Internal.PersistentImport hiding (count)
+import qualified Database.Persist hiding (count)
 
 
 -- $setup
@@ -405,8 +405,8 @@ import qualified Database.Persist
 
 -- | @valkey i = 'val' . 'toSqlKey'@
 -- (<https://github.com/prowdsponsor/esqueleto/issues/9>).
-valkey :: (Esqueleto query expr backend, ToBackendKey SqlBackend entity, PersistField (Key entity)) =>
-          Int64 -> expr (Value (Key entity))
+valkey :: (Esqueleto query expr backend, ToBackendKey SqlBackend entity) =>
+          Int64 -> expr (Value (Key entity))\
 valkey = val . toSqlKey
 
 
@@ -430,8 +430,9 @@ valJ = val . unValue
 
 -- | Synonym for 'Database.Persist.Store.delete' that does not
 -- clash with @esqueleto@'s 'delete'.
-deleteKey :: ( PersistStore (PersistEntityBackend val)
-             , MonadIO m
-             , PersistEntity val )
-          => Key val -> ReaderT (PersistEntityBackend val) m ()
+deleteKey :: (
+    MonadIO m
+  , PersistStoreWrite backend
+  , PersistRecordBackend record backend) 
+  => Key record -> ReaderT backend m ()
 deleteKey = Database.Persist.delete

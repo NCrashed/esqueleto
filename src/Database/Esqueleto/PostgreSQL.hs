@@ -26,8 +26,7 @@ arrayAgg = unsafeSqlFunction "array_agg"
 --
 -- /Since: 2.2.8/
 stringAgg
-  :: SqlString s
-  => SqlExpr (Value s) -- ^ Input values.
+  :: SqlExpr (Value s) -- ^ Input values.
   -> SqlExpr (Value s) -- ^ Delimiter.
   -> SqlExpr (Value s) -- ^ Concatenation.
 stringAgg expr delim = unsafeSqlFunction "string_agg" (expr, delim)
@@ -37,5 +36,5 @@ stringAgg expr delim = unsafeSqlFunction "string_agg" (expr, delim)
 -- depend on the character set of your database.)
 --
 -- /Since: 2.2.11/
-chr :: SqlString s => SqlExpr (Value Int) -> SqlExpr (Value s)
+chr :: SqlExpr (Value Int) -> SqlExpr (Value s)
 chr = unsafeSqlFunction "chr"
